@@ -2,8 +2,10 @@ package com.lakshan.task_flow.controller;
 
 import com.lakshan.task_flow.entity.User;
 import com.lakshan.task_flow.exception.InvalidCredentialsException;
+import com.lakshan.task_flow.model.AuthResponse;
 import com.lakshan.task_flow.model.UserRequest;
 import com.lakshan.task_flow.model.UserResponse;
+import com.lakshan.task_flow.security.JwtUtil;
 import com.lakshan.task_flow.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +21,13 @@ public class UserController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserController(UserService userService, PasswordEncoder passwordEncoder) {
+    public UserController(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
@@ -38,17 +42,23 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponse> login(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody UserRequest userRequest) {
         var dbUser = userService.getUserByEmail(userRequest.getEmail());
 
         if(!passwordEncoder.matches(userRequest.getPassword(), dbUser.getPassword())){
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
-        UserResponse userResponse = new UserResponse();
-        userResponse.setUsername(dbUser.getUsername());
-        userResponse.setEmail(dbUser.getEmail());
-        return ResponseEntity.ok(userResponse);
+        // Generate JWT token
+        String token = jwtUtil.generateToken(dbUser.getEmail(), dbUser.getRole().name());
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(token);
+        authResponse.setUsername(dbUser.getUsername());
+        authResponse.setEmail(dbUser.getEmail());
+        authResponse.setRole(dbUser.getRole().name());
+
+        return ResponseEntity.ok(authResponse);
     }
 
     @GetMapping("/{role}")
