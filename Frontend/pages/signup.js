@@ -77,11 +77,12 @@ export default function Signup() {
           confirmPassword: formData.confirmPassword
         });
 
-        toast.success("Signup successful!");
+        toast.success("Signup successful! Please login.");
         router.push("/login");
       } catch (error) {
-        console.error("Signup error:", error.response);
-        toast.error("Signup failed. Please try again.");
+        console.error("Signup error:", error.response?.data);
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || "Signup failed. Please try again.";
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }

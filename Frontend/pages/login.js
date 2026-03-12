@@ -64,7 +64,8 @@ export default function Login() {
         router.push("/dashboard");
       } catch (error) {
         console.error("Login error:", error.response?.data);
-        toast.error(error.response?.data || "Login failed. Please try again.");
+        const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || "Login failed. Please try again.";
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
