@@ -36,6 +36,7 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       setError(null);
+      // Backend API automatically returns all tasks for ADMIN users based on token
       const data = await getAllTasks();
       console.log('Fetched tasks:', data);
       setTasks(data);

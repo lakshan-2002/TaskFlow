@@ -7,6 +7,7 @@ const TASK_ENDPOINTS = {
 /**
  * Get all tasks for the authenticated user
  * Token is automatically added via apiClient interceptor
+ * Backend returns all tasks for ADMIN users, user-specific tasks for regular users
  * @returns {Promise} Array of tasks
  */
 export const getAllTasks = async () => {

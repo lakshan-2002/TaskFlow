@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { LayoutDashboard, Plus, ListTodo, CheckCircle, User, LogOut } from 'lucide-react';
+import { LayoutDashboard, Plus, ListTodo, CheckCircle, LogOut } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
 const Sidebar = ({ isOpen, activePage, onLogout }) => {
@@ -11,7 +11,6 @@ const Sidebar = ({ isOpen, activePage, onLogout }) => {
     { id: 'add-task', name: 'Add Task', icon: Plus, path: '/add-task' },
     { id: 'all-tasks', name: 'All Tasks', icon: ListTodo, path: '/all-tasks' },
     { id: 'completed', name: 'Completed Tasks', icon: CheckCircle, path: '/completed-tasks' },
-    { id: 'profile', name: 'Profile', icon: User, path: '/profile' },
   ];
 
   return (

@@ -44,6 +44,7 @@ export default function CompletedTasks() {
     try {
       setIsLoading(true);
       setError(null);
+      // Backend API automatically returns all tasks for ADMIN users based on token
       const data = await getAllTasks();
       const completedTasks = data.filter(task => task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed');
       setTasks(completedTasks);

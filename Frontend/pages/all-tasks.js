@@ -46,6 +46,7 @@ export default function AllTasks() {
     try {
       setIsLoading(true);
       setError(null);
+      // Backend API automatically returns all tasks for ADMIN users based on token
       const data = await getAllTasks();
       setTasks(data);
     } catch (err) {
