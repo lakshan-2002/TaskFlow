@@ -4,8 +4,10 @@ import com.lakshan.task_flow.entity.Task;
 import com.lakshan.task_flow.model.TaskRequest;
 import com.lakshan.task_flow.model.TaskResponse;
 import com.lakshan.task_flow.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +25,10 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(
-            @RequestBody TaskRequest taskRequest,
+            @Valid @RequestBody TaskRequest taskRequest,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         String email = userDetails.getUsername();
@@ -42,15 +45,17 @@ public class TaskController {
         return ResponseEntity.status(201).body(taskResponse);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public List<Task> getTasksByUserEmail(@AuthenticationPrincipal UserDetails userDetails){
         String email = userDetails.getUsername();
         return taskService.getTasksByUserEmail(email);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PutMapping
     public ResponseEntity<TaskResponse> updateTask(
-            @RequestBody TaskRequest taskRequest,
+            @Valid @RequestBody TaskRequest taskRequest,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
         String email = userDetails.getUsername();
@@ -67,6 +72,7 @@ public class TaskController {
         return ResponseEntity.ok(taskResponse);
     }
 
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(
             @PathVariable int id,
