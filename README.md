@@ -106,9 +106,35 @@ Before running the application, ensure you have the following installed:
 2. Execute the following SQL commands:
 
 ```sql
-CREATE DATABASE taskflow;
-USE taskflow;
+CREATE DATABASE task_flow_db;
+
+USE task_flow_db;
+
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('ADMIN','USER') DEFAULT 'USER',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tasks (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    status ENUM('TODO','IN_PROGRESS','DONE') DEFAULT 'TODO',
+    priority ENUM('LOW','MEDIUM','HIGH') DEFAULT 'MEDIUM',
+    due_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id BIGINT NOT NULL,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 ```
+
+**Note:** The tables will also be automatically created by Hibernate on first run if they don't exist, but you can use the above schema for manual setup or reference.
 
 ### Step 2: Configure Environment Variables
 
@@ -118,7 +144,7 @@ The application uses environment variables for sensitive configuration. **Never 
 
 | Variable Name | Description | Example Value | Required |
 |--------------|-------------|---------------|----------|
-| `Database_Host` | MySQL database connection URL | `jdbc:mysql://localhost:3306/taskflow` | Yes |
+| `Database_Host` | MySQL database connection URL | `jdbc:mysql://localhost:3306/task_flow_db` | Yes |
 | `Database_Username` | MySQL database username | `root` or `your_username` | Yes |
 | `Database_Password` | MySQL database password | `your_secure_password` | Yes |
 | `JWT_Secret_Key` | Secret key for JWT token signing (min 32 characters) | `mySecureJWTSecretKeyForTaskFlowApplication2026` | Yes |
@@ -133,7 +159,7 @@ The application uses environment variables for sensitive configuration. **Never 
 
 ```powershell
 # Set environment variables for current session
-$env:Database_Host="jdbc:mysql://localhost:3306/taskflow"
+$env:Database_Host="jdbc:mysql://localhost:3306/task_flow_db"
 $env:Database_Username="your_mysql_username"
 $env:Database_Password="your_mysql_password"
 $env:JWT_Secret_Key="your_secure_jwt_secret_key_min_256_bits"
@@ -172,18 +198,7 @@ export JWT_Secret_Key="your_secure_jwt_secret_key_min_256_bits"
 
 Then run: `source ~/.bashrc` or `source ~/.zshrc`
 
-### Step 3: JWT Secret Key
-
-Generate a secure JWT secret key (minimum 256 bits / 32 characters):
-
-```bash
-# Example secure key (generate your own)
-JWT_Secret_Key=mySecureJWTSecretKeyForTaskFlowApplication2026
-```
-
-**Important**: Use a strong, unique secret key in production!
-
-### Step 4: Verify Configuration
+### Step 3: Verify Configuration
 
 The `application.properties` file is already configured to use these environment variables:
 
@@ -195,33 +210,6 @@ spring.datasource.password=${Database_Password}
 jwt.secret=${JWT_Secret_Key}
 jwt.expiration=3600000
 ```
-
-### Database Schema
-
-The application uses Hibernate with `spring.jpa.hibernate.ddl-auto=update`, which means:
-- Tables will be **automatically created** on first run if they don't exist
-- Schema updates will be applied automatically
-
-**Tables Created:**
-
-#### Users Table
-- `id` - Primary key (BIGINT, auto-increment)
-- `username` - User's display name (VARCHAR 100)
-- `email` - Unique email address (VARCHAR 150, unique)
-- `password` - BCrypt encrypted password (VARCHAR 255)
-- `role` - User role: ADMIN or USER (ENUM, default: USER)
-- `created_at` - Account creation timestamp
-
-#### Tasks Table
-- `id` - Primary key (BIGINT, auto-increment)
-- `title` - Task title (VARCHAR 200)
-- `description` - Task description (TEXT)
-- `status` - Task status: TODO, IN_PROGRESS, DONE (ENUM, default: TODO)
-- `priority` - Task priority: LOW, MEDIUM, HIGH (ENUM, default: MEDIUM)
-- `due_date` - Task due date (DATE)
-- `created_at` - Task creation timestamp
-- `updated_at` - Last update timestamp (auto-updated)
-- `user_id` - Foreign key to users table (CASCADE delete)
 
 ---
 
@@ -345,169 +333,6 @@ Then access:
 
 ---
 
-## 🔌 API Endpoints
-
-### Authentication Endpoints (Public)
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/users/register` | Register a new user | No |
-| POST | `/users/login` | Login and get JWT token | No |
-
-### User Endpoints (Protected)
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/users?role=USER` | Get all users by role | Yes |
-| PUT | `/users` | Update user information | Yes |
-
-### Task Endpoints (Protected)
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/tasks` | Create a new task | Yes (USER) |
-| GET | `/tasks` | Get all tasks (user's own or all if ADMIN) | Yes (USER/ADMIN) |
-| PUT | `/tasks` | Update an existing task | Yes (USER) |
-| DELETE | `/tasks/{id}` | Delete a task by ID | Yes (USER) |
-
----
-
-## 📝 API Usage Examples
-
-### 1. Register a New User
-
-**Request:**
-```http
-POST http://localhost:8080/users/register
-Content-Type: application/json
-
-{
-  "username": "John Doe",
-  "email": "john@example.com",
-  "password": "securePassword123"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "username": "John Doe",
-  "email": "john@example.com"
-}
-```
-
-### 2. Login
-
-**Request:**
-```http
-POST http://localhost:8080/users/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "securePassword123"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "username": "John Doe",
-  "email": "john@example.com",
-  "role": "USER"
-}
-```
-
-### 3. Create a Task
-
-**Request:**
-```http
-POST http://localhost:8080/tasks
-Authorization: Bearer <your_jwt_token>
-Content-Type: application/json
-
-{
-  "title": "Complete project documentation",
-  "description": "Write comprehensive README file",
-  "status": "TODO",
-  "priority": "HIGH",
-  "dueDate": "2026-03-20"
-}
-```
-
-**Response (201 Created):**
-```json
-{
-  "title": "Complete project documentation",
-  "description": "Write comprehensive README file",
-  "status": "TODO",
-  "priority": "HIGH",
-  "dueDate": "2026-03-20"
-}
-```
-
-### 4. Get All Tasks
-
-**Request:**
-```http
-GET http://localhost:8080/tasks
-Authorization: Bearer <your_jwt_token>
-```
-
-**Response (200 OK):**
-```json
-[
-  {
-    "id": 1,
-    "title": "Complete project documentation",
-    "description": "Write comprehensive README file",
-    "status": "TODO",
-    "priority": "HIGH",
-    "dueDate": "2026-03-20",
-    "user": {
-      "id": 1,
-      "username": "John Doe",
-      "email": "john@example.com",
-      "role": "USER"
-    }
-  }
-]
-```
-
-### 5. Update a Task
-
-**Request:**
-```http
-PUT http://localhost:8080/tasks
-Authorization: Bearer <your_jwt_token>
-Content-Type: application/json
-
-{
-  "id": 1,
-  "title": "Complete project documentation",
-  "description": "Write comprehensive README file",
-  "status": "IN_PROGRESS",
-  "priority": "HIGH",
-  "dueDate": "2026-03-20"
-}
-```
-
-### 6. Delete a Task
-
-**Request:**
-```http
-DELETE http://localhost:8080/tasks/1
-Authorization: Bearer <your_jwt_token>
-```
-
-**Response (200 OK):**
-```
-Task deleted successfully.
-```
-
----
-
 ## 🔐 Security Configuration
 
 ### Environment Variables Security
@@ -565,100 +390,6 @@ The `.gitignore` file ensures the following are never committed:
 
 ---
 
-## 🛠️ Troubleshooting
-
-### Backend Issues
-
-1. **Port Already in Use**
-   ```
-   Error: Web server failed to start. Port 8080 was already in use.
-   ```
-   **Solution**: Change the port in `application.properties`:
-   ```properties
-   server.port=8081
-   ```
-
-2. **Database Connection Error**
-   ```
-   Error: Unable to connect to database
-   ```
-   **Solution**:
-   - Verify MySQL is running
-   - Check database credentials in environment variables
-   - Ensure database `taskflow` exists
-
-3. **JWT Secret Key Error**
-   ```
-   Error: The specified key byte array is X bits which is not secure enough
-   ```
-   **Solution**: Use a longer secret key (minimum 256 bits / 32 characters)
-
-4. **Environment Variables Not Found**
-   ```
-   Error: Could not resolve placeholder 'Database_Host'
-   ```
-   **Solution**:
-   - Set environment variables before running the application
-   - Restart your terminal/IDE after setting variables
-   - Verify variables with: `echo $Database_Host` (Linux/Mac) or `echo %Database_Host%` (Windows CMD)
-
-### Frontend Issues
-
-1. **Port 3000 Already in Use**
-   ```
-   Error: Port 3000 is already in use
-   ```
-   **Solution**: Either:
-   - Stop the process using port 3000
-   - Run on different port: `npm run dev -- -p 3001`
-
-2. **Cannot Connect to Backend API**
-   ```
-   Error: Network Error or API request failed
-   ```
-   **Solution**:
-   - Verify backend is running on `http://localhost:8080`
-   - Check `.env.local` has correct `NEXT_PUBLIC_API_URL=http://localhost:8080`
-   - Check browser console for CORS errors
-   - Restart both frontend and backend
-
-3. **Module Not Found Error**
-   ```
-   Error: Cannot find module 'axios' or other dependencies
-   ```
-   **Solution**: Install dependencies:
-   ```bash
-   cd Frontend
-   npm install
-   ```
-
-4. **Environment Variable Not Working**
-   ```
-   Error: API URL is undefined
-   ```
-   **Solution**:
-   - Create `.env.local` file in Frontend folder
-   - Add: `NEXT_PUBLIC_API_URL=http://localhost:8080`
-   - Restart dev server (Ctrl+C then `npm run dev`)
-   - Environment variables must start with `NEXT_PUBLIC_` to be accessible in browser
-
-5. **Node.js Version Error**
-   ```
-   Error: The engine "node" is incompatible
-   ```
-   **Solution**: Install Node.js 18 or higher from https://nodejs.org/
-
-6. **Build Fails**
-   ```
-   Error: Build failed
-   ```
-   **Solution**:
-   - Clear Next.js cache: `rm -rf .next` (Linux/Mac) or `rmdir /s .next` (Windows)
-   - Delete node_modules: `rm -rf node_modules` then `npm install`
-   - Check for syntax errors in your code
-
----
-
 ## 📂 Project Structure
 
 ```
@@ -703,49 +434,13 @@ TaskFlow/
 │       └── .env.local                   # Frontend env vars (not in git)
 ```
 
-
 ---
 
-## 📚 Additional Documentation
+## 📚 API Documentation
 
-- **Security Guide**: `SECURITY_GUIDE.md` - Environment variables and secrets management
-- **JWT Implementation Guide**: `JWT_IMPLEMENTATION_SUMMARY.md`
-- **Global Exception Handler Guide**: `GLOBAL_EXCEPTION_HANDLER_GUIDE.md`
-- **Postman Testing Guide**: `POSTMAN_TESTING_GUIDE.md`
-- **Quick Start Guide**: `QUICK_START.md`
+For complete API documentation including request/response examples, authentication details, and endpoint testing, visit:
 
----
-
-## 🤝 Contributing
-
-1. Follow clean architecture principles
-2. Maintain proper layer separation
-3. Add appropriate validation and error handling
-4. Update documentation for new features
-
----
-
-## 📄 License
-
-This project is created for educational purposes.
-
----
-
-## 👨‍💻 Developer
-
-**Lakshan**
-TaskFlow - A Mini Task Management System
-Version: 1.0.0
-Last Updated: March 13, 2026
-
----
-
-## 📞 Support
-
-For issues or questions:
-1. Check the troubleshooting section
-2. Review the additional documentation files
-3. Verify all environment variables are set correctly
+**Postman Documentation**: [https://documenter.getpostman.com/view/38623215/2sBXigKsHq](https://documenter.getpostman.com/view/38623215/2sBXigKsHq)
 
 ---
 
