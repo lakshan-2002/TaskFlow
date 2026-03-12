@@ -110,6 +110,7 @@
   padding: 40px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
   width: 100%;
+  max-height: 750px;
   max-width: 100%;
   flex: 1;
   display: flex;
@@ -119,14 +120,14 @@
 .taskForm {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 35px;
   flex: 1;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .formGroup.descriptionGroup {

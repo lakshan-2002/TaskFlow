@@ -15,7 +15,6 @@ export default function AllTasks() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [filterDate, setFilterDate] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,58 +93,6 @@ export default function AllTasks() {
     }
   };
 
-  // Date filtering logic
-  const filterTasksByDate = (task) => {
-    if (filterDate === 'all') return true;
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const taskDate = new Date(task.dueDate);
-    taskDate.setHours(0, 0, 0, 0);
-    const diffTime = taskDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    switch (filterDate) {
-      case 'overdue':
-        return diffDays < 0 && task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed';
-      case 'today':
-        return diffDays === 0;
-      case 'upcoming':
-        return diffDays > 0;
-      default:
-        return true;
-    }
-  };
-
-  // Count tasks by date category
-  const getDateCounts = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let overdue = 0;
-    let todayCount = 0;
-    let upcoming = 0;
-    
-    tasks.forEach(task => {
-      const taskDate = new Date(task.dueDate);
-      taskDate.setHours(0, 0, 0, 0);
-      const diffTime = taskDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays < 0 && task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed') {
-        overdue++;
-      } else if (diffDays === 0) {
-        todayCount++;
-      } else if (diffDays > 0) {
-        upcoming++;
-      }
-    });
-    
-    return { overdue, today: todayCount, upcoming };
-  };
-
-  const dateCounts = getDateCounts();
-
   // Count tasks by status
   const getStatusCounts = () => {
     const counts = {
@@ -202,11 +149,8 @@ export default function AllTasks() {
     return task.status?.toUpperCase() === filterStatus;
   });
 
-  // Filter by date
-  const dateFilteredTasks = statusFilteredTasks.filter(filterTasksByDate);
-
   // Filter by search query
-  const searchedTasks = dateFilteredTasks.filter(task => 
+  const searchedTasks = statusFilteredTasks.filter(task => 
     task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -235,7 +179,7 @@ export default function AllTasks() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterPriority, filterStatus, filterDate, searchQuery, sortBy, sortOrder]);
+  }, [filterPriority, filterStatus, searchQuery, sortBy, sortOrder]);
 
   const getPriorityColor = (priority) => {
     const priorityLower = priority?.toLowerCase();
@@ -386,7 +330,7 @@ export default function AllTasks() {
           </div>
 
           {/* Priority Filter */}
-          <div className={styles.filterSection}>
+          <div className={`${styles.filterSection} ${styles.priorityFilterSection}`}>
             <div className={styles.filterLabel}>
               <Flag size={18} />
               Filter by Priority:
@@ -419,39 +363,6 @@ export default function AllTasks() {
             </div>
           </div>
 
-          {/* Date Filter */}
-          <div className={styles.filterSection}>
-            <div className={styles.filterLabel}>
-              <Calendar size={18} />
-              Filter by Date:
-            </div>
-            <div className={styles.filterButtons}>
-              <button 
-                className={`${styles.filterBtn} ${filterDate === 'all' ? styles.filterActive : ''}`}
-                onClick={() => setFilterDate('all')}
-              >
-                All
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterDate === 'overdue' ? styles.filterActive : ''}`}
-                onClick={() => setFilterDate('overdue')}
-              >
-                Overdue {dateCounts.overdue > 0 && <span className={styles.countBadge}>{dateCounts.overdue}</span>}
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterDate === 'today' ? styles.filterActive : ''}`}
-                onClick={() => setFilterDate('today')}
-              >
-                Today {dateCounts.today > 0 && <span className={styles.countBadge}>{dateCounts.today}</span>}
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterDate === 'upcoming' ? styles.filterActive : ''}`}
-                onClick={() => setFilterDate('upcoming')}
-              >
-                Upcoming {dateCounts.upcoming > 0 && <span className={styles.countBadge}>{dateCounts.upcoming}</span>}
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Tasks Grid */}
