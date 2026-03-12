@@ -61,8 +61,8 @@ public class UserController {
         return ResponseEntity.ok(authResponse);
     }
 
-    @GetMapping("/{role}")
-    public List<User> getAllUsersByRole(@PathVariable String role){
+    @GetMapping
+    public List<User> getAllUsersByRole(@RequestParam String role){
         return userService.getAllUsersByRole(role);
     }
 

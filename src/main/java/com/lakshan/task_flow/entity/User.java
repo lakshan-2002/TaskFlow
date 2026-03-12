@@ -1,5 +1,6 @@
 package com.lakshan.task_flow.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.lakshan.task_flow.enums.Role;
 import jakarta.persistence.*;
 
@@ -19,6 +20,7 @@ public class User {
     private String email;
 
     @Column(name = "password")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "role")
