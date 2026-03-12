@@ -5,12 +5,12 @@ const TASK_ENDPOINTS = {
 };
 
 /**
- * Get all tasks for a user
- * @param {number} userId - User ID
+ * Get all tasks for the authenticated user
+ * Token is automatically added via apiClient interceptor
  * @returns {Promise} Array of tasks
  */
-export const getAllTasks = async (userId) => {
-  const response = await apiClient.get(`${TASK_ENDPOINTS.BASE}/${userId}`);
+export const getAllTasks = async () => {
+  const response = await apiClient.get(TASK_ENDPOINTS.BASE);
   return response.data;
 };
 
@@ -41,7 +41,10 @@ export const createTask = async (taskData) => {
  * @returns {Promise} Updated task
  */
 export const updateTask = async (taskId, taskData) => {
-  const response = await apiClient.put(`${TASK_ENDPOINTS.BASE}/${taskId}`, taskData);
+  const response = await apiClient.put(TASK_ENDPOINTS.BASE, { 
+    ...taskData, 
+    id: taskId 
+  });
   return response.data;
 };
 
@@ -57,29 +60,34 @@ export const deleteTask = async (taskId) => {
 
 /**
  * Get tasks filtered by status
- * @param {number} userId - User ID
- * @param {string} status - Task status ('pending', 'completed', etc.)
+ * @param {string} status - Task status ('pending', 'done', etc.)
  * @returns {Promise} Array of filtered tasks
  */
-export const getTasksByStatus = async (userId, status) => {
-  const allTasks = await getAllTasks(userId);
-  return allTasks.filter(task => task.status?.toLowerCase() === status.toLowerCase());
+export const getTasksByStatus = async (status) => {
+  const allTasks = await getAllTasks();
+  const statusLower = status.toLowerCase();
+  return allTasks.filter(task => {
+    const taskStatus = task.status?.toLowerCase();
+    // Handle both 'done' and 'completed' for completed tasks
+    if (statusLower === 'completed' || statusLower === 'done') {
+      return taskStatus === 'done' || taskStatus === 'completed';
+    }
+    return taskStatus === statusLower;
+  });
 };
 
 /**
- * Get completed tasks for a user
- * @param {number} userId - User ID
+ * Get completed tasks for the authenticated user
  * @returns {Promise} Array of completed tasks
  */
-export const getCompletedTasks = async (userId) => {
-  return getTasksByStatus(userId, 'completed');
+export const getCompletedTasks = async () => {
+  return getTasksByStatus('done');
 };
 
 /**
- * Get pending tasks for a user
- * @param {number} userId - User ID
+ * Get pending tasks for the authenticated user
  * @returns {Promise} Array of pending tasks
  */
-export const getPendingTasks = async (userId) => {
-  return getTasksByStatus(userId, 'pending');
+export const getPendingTasks = async () => {
+  return getTasksByStatus('pending');
 };

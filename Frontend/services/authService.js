@@ -38,21 +38,38 @@ export const getCurrentUser = () => {
 };
 
 /**
- * Save user to localStorage
- * @param {Object} user - User object
+ * Get token from localStorage
+ * @returns {string|null} Token or null
  */
-export const saveUser = (user) => {
+export const getToken = () => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('user', JSON.stringify(user));
+    return localStorage.getItem('token');
+  }
+  return null;
+};
+
+/**
+ * Save user and token to localStorage
+ * @param {Object} data - Response data containing user and token
+ */
+export const saveUser = (data) => {
+  if (typeof window !== 'undefined') {
+    // Save token if present in response
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+    }
+    // Save user data
+    localStorage.setItem('user', JSON.stringify(data));
   }
 };
 
 /**
- * Remove user from localStorage
+ * Remove user and token from localStorage
  */
 export const removeUser = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   }
 };
 
@@ -61,5 +78,12 @@ export const removeUser = () => {
  * @returns {boolean}
  */
 export const isAuthenticated = () => {
-  return getCurrentUser() !== null;
+  return getToken() !== null;
+};
+
+/**
+ * Logout user - remove user data and token
+ */
+export const logout = () => {
+  removeUser();
 };
