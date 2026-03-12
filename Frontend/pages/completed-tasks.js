@@ -40,8 +40,8 @@ export default function CompletedTasks() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getAllTasks(user.id);
-      const completedTasks = data.filter(task => task.status?.toLowerCase() === 'completed');
+      const data = await getAllTasks();
+      const completedTasks = data.filter(task => task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed');
       setTasks(completedTasks);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -63,10 +63,9 @@ export default function CompletedTasks() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (updatedTask) => {
-    setTasks(tasks.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    ));
+  const handleSaveEdit = async (updatedTask) => {
+    // Refetch all tasks to ensure we have the latest data from the backend
+    await fetchTasks();
   };
 
   const handleCloseModal = () => {
@@ -193,7 +192,7 @@ export default function CompletedTasks() {
                   <div className={styles.taskMeta}>
                     <span className={`${styles.statusBadge} ${styles.statusCompleted}`}>
                       <CheckCircle size={16} />
-                      <span>Completed</span>
+                      <span style={{ textTransform: 'capitalize' }}>{task.status?.toLowerCase() === 'done' ? 'Done' : 'Completed'}</span>
                     </span>
                     
                     <span className={styles.dueDate}>

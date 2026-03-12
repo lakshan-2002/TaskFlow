@@ -1,30 +1,30 @@
 import React from 'react';
-import { ListTodo, LayoutDashboard, CheckCircle } from 'lucide-react';
+import { Clock, ListTodo, CheckCircle } from 'lucide-react';
 import styles from './OverviewCards.module.css';
 
-const OverviewCards = ({ allTasks = 0, pendingTasks = 0, completedTasks = 0, isLoading = false }) => {
+const OverviewCards = ({ pendingTasks = 0, inProgressTasks = 0, completedTasks = 0, isLoading = false }) => {
   const cardsData = [
     {
       id: 1,
-      title: 'All Tasks',
-      value: allTasks,
-      trend: '↑ 12% from last week',
-      icon: ListTodo,
-      colorClass: styles.cardBlue
+      title: 'Pending Tasks',
+      value: pendingTasks,
+      trend: 'Waiting to start',
+      icon: Clock,
+      colorClass: styles.cardOrange
     },
     {
       id: 2,
-      title: 'Pending Tasks',
-      value: pendingTasks,
-      trend: '↓ 5% from last week',
-      icon: LayoutDashboard,
-      colorClass: styles.cardOrange
+      title: 'In Progress Tasks',
+      value: inProgressTasks,
+      trend: 'Currently working',
+      icon: ListTodo,
+      colorClass: styles.cardBlue
     },
     {
       id: 3,
       title: 'Completed Tasks',
       value: completedTasks,
-      trend: '↑ 18% from last week',
+      trend: 'Successfully finished',
       icon: CheckCircle,
       colorClass: styles.cardGreen
     }

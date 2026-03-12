@@ -36,7 +36,8 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getAllTasks(user.id);
+      const data = await getAllTasks();
+      console.log('Fetched tasks:', data);
       setTasks(data);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -49,14 +50,22 @@ export default function Dashboard() {
 
   // Calculate task statistics
   const calculateStats = () => {
-    const allTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.status?.toLowerCase() === 'completed').length;
-    const pendingTasks = tasks.filter(task => task.status?.toLowerCase() === 'pending').length;
+    const pendingTasks = tasks.filter(task => {
+      const status = task.status?.toLowerCase();
+      return status === 'pending' || status === 'todo';
+    }).length;
+    const inProgressTasks = tasks.filter(task => {
+      const status = task.status?.toLowerCase();
+      return status === 'in progress' || status === 'in-progress' || status === 'inprogress' || status === 'in_progress';
+    }).length;
+    const completedTasks = tasks.filter(task => task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed').length;
+    
+    console.log('Task Statistics:', { pendingTasks, inProgressTasks, completedTasks, totalTasks: tasks.length });
     
     return {
-      allTasks,
-      completedTasks,
-      pendingTasks
+      pendingTasks,
+      inProgressTasks,
+      completedTasks
     };
   };
 
@@ -113,8 +122,8 @@ export default function Dashboard() {
         <div className={styles.content}>
           {/* Overview Cards */}
           <OverviewCards 
-            allTasks={stats.allTasks}
             pendingTasks={stats.pendingTasks}
+            inProgressTasks={stats.inProgressTasks}
             completedTasks={stats.completedTasks}
             isLoading={isLoading}
           />
@@ -122,8 +131,8 @@ export default function Dashboard() {
           {/* Charts */}
           <Charts 
             tasks={tasks}
-            allTasks={stats.allTasks}
             pendingTasks={stats.pendingTasks}
+            inProgressTasks={stats.inProgressTasks}
             completedTasks={stats.completedTasks}
             isLoading={isLoading}
           />

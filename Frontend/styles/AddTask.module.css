@@ -18,6 +18,8 @@
   padding: 30px;
   height: 100vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .mainExpanded {
@@ -98,26 +100,38 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  flex: 1;
+  height: 100%;
 }
 
 .formContainer {
   background: #fff;
   border-radius: 16px;
-  padding: 32px;
+  padding: 40px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
-  max-width: 800px;
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .taskForm {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 30px;
+  flex: 1;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.formGroup.descriptionGroup {
+  display: flex;
+  flex-direction: column;
 }
 
 .formGroup label {
@@ -157,8 +171,14 @@
 }
 
 .formGroup textarea {
-  min-height: 120px;
+  min-height: 100px;
+  max-height: 300px;
   resize: vertical;
+}
+
+.formGroup.descriptionGroup textarea {
+  min-height: 100px;
+  max-height: 300px;
 }
 
 .formGroup input::placeholder,
@@ -179,9 +199,23 @@
 }
 
 .errorMessage {
-  font-size: 0.92rem;
-  color: #C51B1B;
-  margin-top: 2px;
+  padding: 12px 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid #fecaca;
+}
+
+.successMessage {
+  padding: 12px 16px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid #a7f3d0;
 }
 
 .formRow {
@@ -194,6 +228,43 @@
   display: flex;
   gap: 12px;
   margin-top: 10px;
+}
+
+.btn {
+  padding: 14px 24px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btnPrimary {
+  background: #6c63ff;
+  color: #fff;
+  width: 100%;
+  margin-top: auto;
+}
+
+.btnPrimary:hover {
+  background: #5a52d5;
+}
+
+.btnPrimary:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  background: #fff;
+  border: 1.5px solid #e0e0e0;
+  color: #444;
+}
+
+.btnSecondary:hover {
+  background: #f7f8fa;
+  border-color: #6c63ff;
 }
 
 .submitBtn {
@@ -251,6 +322,9 @@
     flex-direction: column;
   }
 
+  .btn,
+  .btnPrimary,
+  .btnSecondary,
   .submitBtn,
   .cancelBtn {
     width: 100%;

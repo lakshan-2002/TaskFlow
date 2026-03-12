@@ -41,7 +41,7 @@ export default function AllTasks() {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getAllTasks(user.id);
+      const data = await getAllTasks();
       setTasks(data);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -63,10 +63,9 @@ export default function AllTasks() {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = (updatedTask) => {
-    setTasks(tasks.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    ));
+  const handleSaveEdit = async (updatedTask) => {
+    // Refetch all tasks to ensure we have the latest data from the backend
+    await fetchTasks();
   };
 
   const handleCloseModal = () => {
@@ -102,7 +101,7 @@ export default function AllTasks() {
     
     switch (filterDate) {
       case 'overdue':
-        return diffDays < 0 && task.status !== 'completed';
+        return diffDays < 0 && task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed';
       case 'today':
         return diffDays === 0;
       case 'upcoming':
@@ -127,7 +126,7 @@ export default function AllTasks() {
       const diffTime = taskDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (diffDays < 0 && task.status !== 'completed') {
+      if (diffDays < 0 && task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed') {
         overdue++;
       } else if (diffDays === 0) {
         todayCount++;
@@ -166,7 +165,7 @@ export default function AllTasks() {
 
   const getStatusColor = (status) => {
     const statusLower = status?.toLowerCase();
-    return statusLower === 'completed' ? styles.statusCompleted : styles.statusPending;
+    return (statusLower === 'done' || statusLower === 'completed') ? styles.statusCompleted : styles.statusPending;
   };
 
   const formatDate = (dateString) => {
@@ -179,7 +178,8 @@ export default function AllTasks() {
   };
 
   const isOverdue = (dueDate, status) => {
-    if (status === 'completed') return false;
+    const statusLower = status?.toLowerCase();
+    if (statusLower === 'done' || statusLower === 'completed') return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const taskDate = new Date(dueDate);
@@ -294,7 +294,7 @@ export default function AllTasks() {
                 <div className={styles.taskFooter}>
                   <div className={styles.taskMeta}>
                     <span className={`${styles.statusBadge} ${getStatusColor(task.status)}`}>
-                      {task.status?.toLowerCase() === 'completed' ? (
+                      {(task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed') ? (
                         <CheckCircle size={16} />
                       ) : (
                         <Clock size={16} />

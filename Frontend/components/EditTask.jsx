@@ -10,8 +10,8 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
     id: '',
     title: '',
     description: '',
-    status: 'pending',
-    priority: 'medium',
+    status: 'TODO',
+    priority: 'MEDIUM',
     dueDate: ''
   });
 
@@ -25,8 +25,8 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
         id: task.id,
         title: task.title,
         description: task.description,
-        status: task.status?.toLowerCase() || 'pending',
-        priority: task.priority?.toLowerCase() || 'medium',
+        status: task.status || 'TODO',
+        priority: task.priority || 'MEDIUM',
         dueDate: task.dueDate
       });
     }
@@ -47,16 +47,12 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
     setError(null);
 
     try {
-      const user = getCurrentUser();
-
       const updatedTask = await updateTask(formData.id, {
-        id: formData.id,
         title: formData.title,
         description: formData.description,
         status: formData.status,
         priority: formData.priority,
-        dueDate: formData.dueDate,
-        user: user
+        dueDate: formData.dueDate
       });
 
       toast.success('Task updated successfully!');
@@ -64,7 +60,7 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
       onClose();
     } catch (err) {
       console.error('Error updating task:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to update task';
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to update task';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -141,8 +137,9 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
                 className={styles.modalFormSelect}
                 required
               >
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
+                <option value="TODO">Pending (TODO)</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="DONE">Done</option>
               </select>
             </div>
 
@@ -159,9 +156,9 @@ const EditTask = ({ task, isOpen, onClose, onSave }) => {
                 className={styles.modalFormSelect}
                 required
               >
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
               </select>
             </div>
           </div>

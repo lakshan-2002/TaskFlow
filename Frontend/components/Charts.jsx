@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import styles from './Charts.module.css';
 
-const Charts = ({ tasks = [], allTasks = 0, pendingTasks = 0, completedTasks = 0, isLoading = false }) => {
+const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTasks = 0, isLoading = false }) => {
   // Calculate daily completion trend from actual tasks
   const lineData = useMemo(() => {
     // Get last 7 days
@@ -17,7 +17,7 @@ const Charts = ({ tasks = [], allTasks = 0, pendingTasks = 0, completedTasks = 0
       
       // Count completed tasks for this day
       const completedOnDay = tasks.filter(task => {
-        if (task.status?.toLowerCase() !== 'completed') return false;
+        if (task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed') return false;
         const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
         return taskDate === dateStr;
       }).length;
@@ -32,11 +32,17 @@ const Charts = ({ tasks = [], allTasks = 0, pendingTasks = 0, completedTasks = 0
   }, [tasks]);
 
   // Pie chart data based on actual task counts
-  const pieData = useMemo(() => [
-    { name: 'Completed', value: completedTasks, color: '#10b981' },
-    { name: 'Pending', value: pendingTasks, color: '#f59e0b' },
-    { name: 'All Tasks', value: allTasks, color: '#3b82f6' }
-  ], [completedTasks, pendingTasks, allTasks]);
+  const pieData = useMemo(() => {
+    const data = [
+      { name: 'Pending', value: pendingTasks, color: '#f59e0b' },
+      { name: 'In Progress', value: inProgressTasks, color: '#3b82f6' },
+      { name: 'Completed', value: completedTasks, color: '#10b981' }
+    ];
+    // Filter out entries with 0 value for cleaner display
+    return data.filter(item => item.value > 0);
+  }, [pendingTasks, inProgressTasks, completedTasks]);
+
+  const hasTaskData = pieData.length > 0;
 
   if (isLoading) {
     return (
@@ -90,26 +96,32 @@ const Charts = ({ tasks = [], allTasks = 0, pendingTasks = 0, completedTasks = 0
       {/* Pie Chart */}
       <div className={styles.chartCard}>
         <h3 className={styles.chartTitle}>Task Distribution</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {pieData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        {hasTaskData ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                labelLine={true}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={90}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px', color: '#6b7280' }}>
+            <p>No task data available</p>
+          </div>
+        )}
       </div>
     </div>
   );

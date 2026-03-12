@@ -13,8 +13,8 @@ export default function AddTask() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'pending',
-    priority: 'medium',
+    status: 'TODO',
+    priority: 'MEDIUM',
     dueDate: ''
   });
 
@@ -53,29 +53,35 @@ export default function AddTask() {
         return;
       }
 
-      await createTask({
+      // Create task with proper data structure
+      const taskData = {
         title: formData.title,
         description: formData.description,
         status: formData.status,
         priority: formData.priority,
-        dueDate: formData.dueDate,
-        user: user
-      });
+        dueDate: formData.dueDate
+      };
+
+      console.log('Submitting task:', taskData);
+      const response = await createTask(taskData);
+      console.log('Task created:', response);
 
       setSuccessMessage('Task added successfully!');
       toast.success('Task added successfully!');
       
+      // Reset form
       handleReset();
 
+      // Optionally redirect to all tasks page after 2 seconds
       setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+        router.push('/all-tasks');
+      }, 1500);
 
     } catch (err) {
       console.error('Error adding task:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'An error occurred while adding the task';
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'An error occurred while adding the task';
       setError(errorMessage);
-      toast.error("Error adding task");
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -85,8 +91,8 @@ export default function AddTask() {
     setFormData({
       title: '',
       description: '',
-      status: 'pending',
-      priority: 'medium',
+      status: 'TODO',
+      priority: 'MEDIUM',
       dueDate: ''
     });
     setError(null);
@@ -144,7 +150,7 @@ export default function AddTask() {
               </div>
 
               {/* Description Field */}
-              <div className={styles.formGroup}>
+              <div className={`${styles.formGroup} ${styles.descriptionGroup}`}>
                 <label htmlFor="description" className={styles.formLabel}>
                   Description <span className={styles.required}>*</span>
                 </label>
@@ -177,8 +183,9 @@ export default function AddTask() {
                     required
                     disabled={isLoading}
                   >
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
+                    <option value="TODO">Pending (TODO)</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
                   </select>
                 </div>
 
@@ -196,9 +203,9 @@ export default function AddTask() {
                     required
                     disabled={isLoading}
                   >
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
                   </select>
                 </div>
               </div>
@@ -232,24 +239,14 @@ export default function AddTask() {
                 </div>
               )}
 
-              {/* Form Buttons */}
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className={`${styles.btn} ${styles.btnSecondary}`}
-                  disabled={isLoading}
-                >
-                  Reset
-                </button>
-                <button
-                  type="submit"
-                  className={`${styles.btn} ${styles.btnPrimary}`}
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Adding Task...' : 'Add Task'}
-                </button>
-              </div>
+              {/* Submit Button - Full Width */}
+              <button
+                type="submit"
+                className={`${styles.btn} ${styles.btnPrimary}`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Adding Task...' : 'Submit'}
+              </button>
             </form>
           </div>
         </div>
