@@ -3,7 +3,6 @@ import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tool
 import styles from './Charts.module.css';
 
 const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTasks = 0, isLoading = false }) => {
-  // Calculate monthly completion trend from actual tasks
   const lineData = useMemo(() => {
     const monthlyTrend = [];
     const now = new Date();
@@ -33,14 +32,12 @@ const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTa
     return monthlyTrend;
   }, [tasks]);
 
-  // Pie chart data based on actual task counts
   const pieData = useMemo(() => {
     const data = [
       { name: 'Pending', value: pendingTasks, color: '#f59e0b' },
       { name: 'In Progress', value: inProgressTasks, color: '#3b82f6' },
       { name: 'Completed', value: completedTasks, color: '#10b981' }
     ];
-    // Filter out entries with 0 value for cleaner display
     return data.filter(item => item.value > 0);
   }, [pendingTasks, inProgressTasks, completedTasks]);
 
@@ -67,7 +64,6 @@ const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTa
 
   return (
     <div className={styles.chartsGrid}>
-      {/* Line Chart */}
       <div className={styles.chartCard}>
         <h3 className={styles.chartTitle}>Monthly Completion Trend</h3>
         <ResponsiveContainer width="100%" height={300}>
@@ -95,7 +91,6 @@ const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTa
         </ResponsiveContainer>
       </div>
 
-      {/* Pie Chart */}
       <div className={styles.chartCard}>
         <h3 className={styles.chartTitle}>Task Distribution</h3>
         {hasTaskData ? (

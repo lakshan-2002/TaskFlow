@@ -53,7 +53,6 @@ export default function AddTask() {
         return;
       }
 
-      // Create task with proper data structure
       const taskData = {
         title: formData.title,
         description: formData.description,
@@ -62,17 +61,13 @@ export default function AddTask() {
         dueDate: formData.dueDate
       };
 
-      console.log('Submitting task:', taskData);
-      const response = await createTask(taskData);
-      console.log('Task created:', response);
+      await createTask(taskData);
 
       setSuccessMessage('Task added successfully!');
       toast.success('Task added successfully!');
-      
-      // Reset form
+
       handleReset();
 
-      // Optionally redirect to all tasks page after 2 seconds
       setTimeout(() => {
         router.push('/all-tasks');
       }, 1500);
@@ -101,16 +96,13 @@ export default function AddTask() {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen}
         activePage={activePage}
         onLogout={handleLogout}
       />
 
-      {/* Main Content */}
       <main className={`${styles.main} ${!isSidebarOpen ? styles.mainExpanded : ''}`}>
-        {/* Header */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <button 
@@ -127,11 +119,9 @@ export default function AddTask() {
           </div>
         </header>
 
-        {/* Content Area */}
         <div className={styles.content}>
           <div className={styles.formContainer}>
             <form onSubmit={handleSubmit} className={styles.taskForm}>
-              {/* Title Field */}
               <div className={styles.formGroup}>
                 <label htmlFor="title" className={styles.formLabel}>
                   Task Title <span className={styles.required}>*</span>
@@ -149,7 +139,6 @@ export default function AddTask() {
                 />
               </div>
 
-              {/* Description Field */}
               <div className={`${styles.formGroup} ${styles.descriptionGroup}`}>
                 <label htmlFor="description" className={styles.formLabel}>
                   Description <span className={styles.required}>*</span>
@@ -167,9 +156,7 @@ export default function AddTask() {
                 />
               </div>
 
-              {/* Status and Priority Row */}
               <div className={styles.formRow}>
-                {/* Status Field */}
                 <div className={styles.formGroup}>
                   <label htmlFor="status" className={styles.formLabel}>
                     Status <span className={styles.required}>*</span>
@@ -189,7 +176,6 @@ export default function AddTask() {
                   </select>
                 </div>
 
-                {/* Priority Field */}
                 <div className={styles.formGroup}>
                   <label htmlFor="priority" className={styles.formLabel}>
                     Priority <span className={styles.required}>*</span>
@@ -210,7 +196,6 @@ export default function AddTask() {
                 </div>
               </div>
 
-              {/* Due Date Field */}
               <div className={styles.formGroup}>
                 <label htmlFor="dueDate" className={styles.formLabel}>
                   Due Date <span className={styles.required}>*</span>
@@ -227,7 +212,6 @@ export default function AddTask() {
                 />
               </div>
 
-              {/* Success/Error Messages */}
               {successMessage && (
                 <div className={styles.successMessage}>
                   {successMessage}
@@ -239,7 +223,6 @@ export default function AddTask() {
                 </div>
               )}
 
-              {/* Submit Button - Full Width */}
               <button
                 type="submit"
                 className={`${styles.btn} ${styles.btnPrimary}`}

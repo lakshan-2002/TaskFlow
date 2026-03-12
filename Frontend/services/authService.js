@@ -54,18 +54,13 @@ export const getToken = () => {
  */
 export const saveUser = (data) => {
   if (typeof window !== 'undefined') {
-    // Save token if present in response
     if (data.token) {
       localStorage.setItem('token', data.token);
     }
-    // Save user data
     localStorage.setItem('user', JSON.stringify(data));
   }
 };
 
-/**
- * Remove user and token from localStorage
- */
 export const removeUser = () => {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('user');
@@ -81,9 +76,6 @@ export const isAuthenticated = () => {
   return getToken() !== null;
 };
 
-/**
- * Logout user - remove user data and token
- */
 export const logout = () => {
   removeUser();
 };

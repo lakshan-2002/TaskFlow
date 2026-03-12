@@ -69,7 +69,6 @@ export const getTasksByStatus = async (status) => {
   const statusLower = status.toLowerCase();
   return allTasks.filter(task => {
     const taskStatus = task.status?.toLowerCase();
-    // Handle both 'done' and 'completed' for completed tasks
     if (statusLower === 'completed' || statusLower === 'done') {
       return taskStatus === 'done' || taskStatus === 'completed';
     }

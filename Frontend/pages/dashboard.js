@@ -14,13 +14,11 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Tasks data and loading state
+
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch all tasks on component mount
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -36,9 +34,7 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       setError(null);
-      // Backend API automatically returns all tasks for ADMIN users based on token
       const data = await getAllTasks();
-      console.log('Fetched tasks:', data);
       setTasks(data);
     } catch (err) {
       console.error('Error fetching tasks:', err);
@@ -49,7 +45,6 @@ export default function Dashboard() {
     }
   };
 
-  // Calculate task statistics
   const calculateStats = () => {
     const pendingTasks = tasks.filter(task => {
       const status = task.status?.toLowerCase();
@@ -60,8 +55,6 @@ export default function Dashboard() {
       return status === 'in progress' || status === 'in-progress' || status === 'inprogress' || status === 'in_progress';
     }).length;
     const completedTasks = tasks.filter(task => task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed').length;
-    
-    console.log('Task Statistics:', { pendingTasks, inProgressTasks, completedTasks, totalTasks: tasks.length });
     
     return {
       pendingTasks,
@@ -80,16 +73,13 @@ export default function Dashboard() {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Sidebar */}
       <Sidebar 
         isOpen={isSidebarOpen}
         activePage={activePage}
         onLogout={handleLogout}
       />
 
-      {/* Main Content */}
       <main className={`${styles.main} ${!isSidebarOpen ? styles.mainExpanded : ''}`}>
-        {/* Header */}
         <header className={styles.header}>
           <div className={styles.headerLeft}>
             <button 
@@ -119,9 +109,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Content Area */}
         <div className={styles.content}>
-          {/* Overview Cards */}
           <OverviewCards 
             pendingTasks={stats.pendingTasks}
             inProgressTasks={stats.inProgressTasks}
@@ -129,7 +117,6 @@ export default function Dashboard() {
             isLoading={isLoading}
           />
 
-          {/* Charts */}
           <Charts 
             tasks={tasks}
             pendingTasks={stats.pendingTasks}
@@ -138,7 +125,6 @@ export default function Dashboard() {
             isLoading={isLoading}
           />
 
-          {/* Error Display */}
           {error && (
             <div className={styles.errorContainer}>
               <p className={styles.errorMessage}>{error}</p>

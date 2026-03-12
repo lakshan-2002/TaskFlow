@@ -20,7 +20,6 @@ export default function Login() {
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -58,8 +57,6 @@ export default function Login() {
         });
 
         saveUser(userData);
-
-        console.log("Login success:", userData);
         toast.success("Login successful!");
         router.push("/dashboard");
       } catch (error) {

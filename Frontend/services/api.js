@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -10,10 +9,8 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor - add auth token if needed
 apiClient.interceptors.request.use(
   (config) => {
-    // Add auth token to requests
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (token) {
@@ -27,11 +24,9 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - handle errors globally
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle errors globally
     console.error('API Error:', error.response?.data || error.message);
     return Promise.reject(error);
   }
