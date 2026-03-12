@@ -14,7 +14,12 @@ export default function AllTasks() {
   const [activePage, setActivePage] = useState('all-tasks');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [filterDate, setFilterDate] = useState('all');
+  const [sortBy, setSortBy] = useState('dueDate');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [tasksPerPage] = useState(9);
   
   // Modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -140,18 +145,96 @@ export default function AllTasks() {
 
   const dateCounts = getDateCounts();
 
-  // Filter tasks
-  const filteredTasks = tasks.filter(task => {
+  // Count tasks by status
+  const getStatusCounts = () => {
+    const counts = {
+      todo: 0,
+      in_progress: 0,
+      done: 0
+    };
+    
+    tasks.forEach(task => {
+      const status = task.status?.toLowerCase();
+      if (status === 'todo') counts.todo++;
+      else if (status === 'in_progress') counts.in_progress++;
+      else if (status === 'done' || status === 'completed') counts.done++;
+    });
+    
+    return counts;
+  };
+
+  const statusCounts = getStatusCounts();
+
+  // Count tasks by priority
+  const getPriorityCounts = () => {
+    const counts = {
+      high: 0,
+      medium: 0,
+      low: 0
+    };
+    
+    tasks.forEach(task => {
+      const priority = task.priority?.toLowerCase();
+      if (priority === 'high') counts.high++;
+      else if (priority === 'medium') counts.medium++;
+      else if (priority === 'low') counts.low++;
+    });
+    
+    return counts;
+  };
+
+  const priorityCounts = getPriorityCounts();
+
+  // Filter tasks by priority
+  const priorityFilteredTasks = tasks.filter(task => {
     if (filterPriority === 'all') return true;
-    return task.priority === filterPriority;
+    return task.priority?.toUpperCase() === filterPriority;
   });
 
-  const dateFilteredTasks = filteredTasks.filter(filterTasksByDate);
+  // Filter by status
+  const statusFilteredTasks = priorityFilteredTasks.filter(task => {
+    if (filterStatus === 'all') return true;
+    const taskStatus = task.status?.toLowerCase();
+    if (filterStatus === 'DONE') {
+      return taskStatus === 'done' || taskStatus === 'completed';
+    }
+    return task.status?.toUpperCase() === filterStatus;
+  });
 
+  // Filter by date
+  const dateFilteredTasks = statusFilteredTasks.filter(filterTasksByDate);
+
+  // Filter by search query
   const searchedTasks = dateFilteredTasks.filter(task => 
     task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Sort tasks
+  const sortedTasks = [...searchedTasks].sort((a, b) => {
+    if (sortBy === 'dueDate') {
+      const dateA = new Date(a.dueDate);
+      const dateB = new Date(b.dueDate);
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    } else if (sortBy === 'priority') {
+      const priorityOrder = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+      const priorityA = priorityOrder[a.priority?.toUpperCase()] || 0;
+      const priorityB = priorityOrder[b.priority?.toUpperCase()] || 0;
+      return sortOrder === 'asc' ? priorityA - priorityB : priorityB - priorityA;
+    }
+    return 0;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedTasks.length / tasksPerPage);
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = sortedTasks.slice(indexOfFirstTask, indexOfLastTask);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterPriority, filterStatus, filterDate, searchQuery, sortBy, sortOrder]);
 
   const getPriorityColor = (priority) => {
     const priorityLower = priority?.toLowerCase();
@@ -225,37 +308,148 @@ export default function AllTasks() {
           </div>
         </header>
 
-        {/* Date Filter Section */}
-        <div className={styles.dateFilterSection}>
-          <div className={styles.dateFilterLabel}>
-            <Filter size={18} />
-            Filter by Date:
+        {/* Sorting Controls */}
+        <div className={styles.sortingContainer}>
+          <div className={styles.sortingLabel}>
+            <span>Sort by:</span>
           </div>
-          <div className={styles.dateFilterButtons}>
+          <div className={styles.sortingButtons}>
             <button 
-              className={`${styles.dateFilterBtn} ${filterDate === 'all' ? styles.dateFilterActive : ''}`}
-              onClick={() => setFilterDate('all')}
+              className={`${styles.sortBtn} ${sortBy === 'dueDate' ? styles.sortActive : ''}`}
+              onClick={() => {
+                if (sortBy === 'dueDate') {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy('dueDate');
+                  setSortOrder('asc');
+                }
+              }}
             >
-              All
+              <Calendar size={16} />
+              Due Date {sortBy === 'dueDate' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
             <button 
-              className={`${styles.dateFilterBtn} ${styles.dateFilterOverdue} ${filterDate === 'overdue' ? styles.dateFilterActive : ''}`}
-              onClick={() => setFilterDate('overdue')}
+              className={`${styles.sortBtn} ${sortBy === 'priority' ? styles.sortActive : ''}`}
+              onClick={() => {
+                if (sortBy === 'priority') {
+                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                } else {
+                  setSortBy('priority');
+                  setSortOrder('desc');
+                }
+              }}
             >
-              Overdue {dateCounts.overdue > 0 && <span className={styles.countBadge}>{dateCounts.overdue}</span>}
+              <Flag size={16} />
+              Priority {sortBy === 'priority' && (sortOrder === 'asc' ? '↑' : '↓')}
             </button>
-            <button 
-              className={`${styles.dateFilterBtn} ${styles.dateFilterToday} ${filterDate === 'today' ? styles.dateFilterActive : ''}`}
-              onClick={() => setFilterDate('today')}
-            >
-              Today {dateCounts.today > 0 && <span className={styles.countBadge}>{dateCounts.today}</span>}
-            </button>
-            <button 
-              className={`${styles.dateFilterBtn} ${styles.dateFilterUpcoming} ${filterDate === 'upcoming' ? styles.dateFilterActive : ''}`}
-              onClick={() => setFilterDate('upcoming')}
-            >
-              Upcoming {dateCounts.upcoming > 0 && <span className={styles.countBadge}>{dateCounts.upcoming}</span>}
-            </button>
+          </div>
+          <div className={styles.resultCount}>
+            Showing {indexOfFirstTask + 1}-{Math.min(indexOfLastTask, sortedTasks.length)} of {sortedTasks.length} tasks
+          </div>
+        </div>
+
+        {/* Filter Sections */}
+        <div className={styles.filtersContainer}>
+          {/* Status Filter */}
+          <div className={styles.filterSection}>
+            <div className={styles.filterLabel}>
+              <Filter size={18} />
+              Filter by Status:
+            </div>
+            <div className={styles.filterButtons}>
+              <button 
+                className={`${styles.filterBtn} ${filterStatus === 'all' ? styles.filterActive : ''}`}
+                onClick={() => setFilterStatus('all')}
+              >
+                All
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterStatus === 'TODO' ? styles.filterActive : ''}`}
+                onClick={() => setFilterStatus('TODO')}
+              >
+                To Do {statusCounts.todo > 0 && <span className={styles.countBadge}>{statusCounts.todo}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterStatus === 'IN_PROGRESS' ? styles.filterActive : ''}`}
+                onClick={() => setFilterStatus('IN_PROGRESS')}
+              >
+                In Progress {statusCounts.in_progress > 0 && <span className={styles.countBadge}>{statusCounts.in_progress}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterStatus === 'DONE' ? styles.filterActive : ''}`}
+                onClick={() => setFilterStatus('DONE')}
+              >
+                Done {statusCounts.done > 0 && <span className={styles.countBadge}>{statusCounts.done}</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Priority Filter */}
+          <div className={styles.filterSection}>
+            <div className={styles.filterLabel}>
+              <Flag size={18} />
+              Filter by Priority:
+            </div>
+            <div className={styles.filterButtons}>
+              <button 
+                className={`${styles.filterBtn} ${filterPriority === 'all' ? styles.filterActive : ''}`}
+                onClick={() => setFilterPriority('all')}
+              >
+                All
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterPriority === 'HIGH' ? styles.filterActive : ''}`}
+                onClick={() => setFilterPriority('HIGH')}
+              >
+                High {priorityCounts.high > 0 && <span className={styles.countBadge}>{priorityCounts.high}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterPriority === 'MEDIUM' ? styles.filterActive : ''}`}
+                onClick={() => setFilterPriority('MEDIUM')}
+              >
+                Medium {priorityCounts.medium > 0 && <span className={styles.countBadge}>{priorityCounts.medium}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterPriority === 'LOW' ? styles.filterActive : ''}`}
+                onClick={() => setFilterPriority('LOW')}
+              >
+                Low {priorityCounts.low > 0 && <span className={styles.countBadge}>{priorityCounts.low}</span>}
+              </button>
+            </div>
+          </div>
+
+          {/* Date Filter */}
+          <div className={styles.filterSection}>
+            <div className={styles.filterLabel}>
+              <Calendar size={18} />
+              Filter by Date:
+            </div>
+            <div className={styles.filterButtons}>
+              <button 
+                className={`${styles.filterBtn} ${filterDate === 'all' ? styles.filterActive : ''}`}
+                onClick={() => setFilterDate('all')}
+              >
+                All
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterDate === 'overdue' ? styles.filterActive : ''}`}
+                onClick={() => setFilterDate('overdue')}
+              >
+                Overdue {dateCounts.overdue > 0 && <span className={styles.countBadge}>{dateCounts.overdue}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterDate === 'today' ? styles.filterActive : ''}`}
+                onClick={() => setFilterDate('today')}
+              >
+                Today {dateCounts.today > 0 && <span className={styles.countBadge}>{dateCounts.today}</span>}
+              </button>
+              <button 
+                className={`${styles.filterBtn} ${filterDate === 'upcoming' ? styles.filterActive : ''}`}
+                onClick={() => setFilterDate('upcoming')}
+              >
+                Upcoming {dateCounts.upcoming > 0 && <span className={styles.countBadge}>{dateCounts.upcoming}</span>}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -276,7 +470,7 @@ export default function AllTasks() {
               <p>No tasks found</p>
             </div>
           ) : (
-            searchedTasks.map(task => (
+            currentTasks.map(task => (
               <div key={task.id} className={styles.taskCard}>
                 <div className={styles.taskCardHeader}>
                   <h3 className={styles.taskTitle}>{task.title}</h3>
@@ -330,6 +524,39 @@ export default function AllTasks() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!isLoading && !error && sortedTasks.length > 0 && (
+          <div className={styles.paginationContainer}>
+            <button 
+              className={styles.paginationBtn}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            
+            <div className={styles.paginationNumbers}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  className={`${styles.paginationNumber} ${currentPage === page ? styles.paginationActive : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            
+            <button 
+              className={styles.paginationBtn}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </main>
 
       <EditTask 
