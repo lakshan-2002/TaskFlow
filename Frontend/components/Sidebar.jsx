@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, activePage, onLogout }) => {
   return (
     <aside className={`${styles.sidebar} ${!isOpen ? styles.sidebarClosed : ''}`}>
       <div className={styles.sidebarHeader}>
-        <h2 className={styles.logo}>TaskNotifier</h2>
+        <h2 className={styles.logo}>TaskFlow</h2>
       </div>
       
       <nav className={styles.nav}>

@@ -3,32 +3,34 @@ import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tool
 import styles from './Charts.module.css';
 
 const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTasks = 0, isLoading = false }) => {
-  // Calculate daily completion trend from actual tasks
+  // Calculate monthly completion trend from actual tasks
   const lineData = useMemo(() => {
-    // Get last 7 days
-    const last7Days = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const dateStr = date.toISOString().split('T')[0];
-      
-      // Count completed tasks for this day
-      const completedOnDay = tasks.filter(task => {
-        if (task.status?.toLowerCase() !== 'done' && task.status?.toLowerCase() !== 'completed') return false;
-        const taskDate = new Date(task.dueDate).toISOString().split('T')[0];
-        return taskDate === dateStr;
+    const monthlyTrend = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthLabel = monthDate.toLocaleDateString('en-US', { month: 'short' });
+      const month = monthDate.getMonth();
+      const year = monthDate.getFullYear();
+
+      const completedInMonth = tasks.filter(task => {
+        const status = task.status?.toLowerCase();
+        if (status !== 'done' && status !== 'completed') return false;
+
+        const taskDate = new Date(task.dueDate);
+        if (Number.isNaN(taskDate.getTime())) return false;
+
+        return taskDate.getMonth() === month && taskDate.getFullYear() === year;
       }).length;
-      
-      last7Days.push({
-        day: dayName,
-        completed: completedOnDay
+
+      monthlyTrend.push({
+        month: monthLabel,
+        completed: completedInMonth
       });
     }
-    
-    return last7Days;
+
+    return monthlyTrend;
   }, [tasks]);
 
   // Pie chart data based on actual task counts
@@ -48,7 +50,7 @@ const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTa
     return (
       <div className={styles.chartsGrid}>
         <div className={styles.chartCard}>
-          <h3 className={styles.chartTitle}>Daily Completion Trend</h3>
+          <h3 className={styles.chartTitle}>Monthly Completion Trend</h3>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
             <p>Loading chart data...</p>
           </div>
@@ -67,11 +69,11 @@ const Charts = ({ tasks = [], pendingTasks = 0, inProgressTasks = 0, completedTa
     <div className={styles.chartsGrid}>
       {/* Line Chart */}
       <div className={styles.chartCard}>
-        <h3 className={styles.chartTitle}>Daily Completion Trend</h3>
+        <h3 className={styles.chartTitle}>Monthly Completion Trend</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={lineData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="day" stroke="#6b7280" />
+            <XAxis dataKey="month" stroke="#6b7280" />
             <YAxis stroke="#6b7280" />
             <Tooltip 
               contentStyle={{
