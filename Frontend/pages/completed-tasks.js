@@ -13,7 +13,6 @@ export default function CompletedTasks() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('completed');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterPriority, setFilterPriority] = useState('all');
   const [sortBy, setSortBy] = useState('dueDate');
   const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,33 +92,11 @@ export default function CompletedTasks() {
     }
   };
 
-  // Count tasks by priority
-  const getPriorityCounts = () => {
-    const counts = {
-      high: 0,
-      medium: 0,
-      low: 0
-    };
-    
-    tasks.forEach(task => {
-      const priority = task.priority?.toLowerCase();
-      if (priority === 'high') counts.high++;
-      else if (priority === 'medium') counts.medium++;
-      else if (priority === 'low') counts.low++;
-    });
-    
-    return counts;
-  };
+  // Filter by completed status
+  const completedTasks = tasks.filter(task => task.status?.toLowerCase() === 'done' || task.status?.toLowerCase() === 'completed');
 
-  const priorityCounts = getPriorityCounts();
-
-  // Filter tasks by priority
-  const filteredTasks = tasks.filter(task => {
-    if (filterPriority === 'all') return true;
-    return task.priority?.toUpperCase() === filterPriority;
-  });
-
-  const searchedTasks = filteredTasks.filter(task => 
+  // Filter by search query
+  const searchedTasks = completedTasks.filter(task => 
     task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     task.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -148,7 +125,7 @@ export default function CompletedTasks() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterPriority, searchQuery, sortBy, sortOrder]);
+  }, [searchQuery, sortBy, sortOrder]);
 
   const getPriorityColor = (priority) => {
     const priorityLower = priority?.toLowerCase();
@@ -247,42 +224,7 @@ export default function CompletedTasks() {
           </div>
         </div>
 
-        {/* Filter Section */}
-        <div className={styles.filtersContainer}>
-          {/* Priority Filter */}
-          <div className={styles.filterSection}>
-            <div className={styles.filterLabel}>
-              <Flag size={18} />
-              Filter by Priority:
-            </div>
-            <div className={styles.filterButtons}>
-              <button 
-                className={`${styles.filterBtn} ${filterPriority === 'all' ? styles.filterActive : ''}`}
-                onClick={() => setFilterPriority('all')}
-              >
-                All
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterPriority === 'HIGH' ? styles.filterActive : ''}`}
-                onClick={() => setFilterPriority('HIGH')}
-              >
-                High {priorityCounts.high > 0 && <span className={styles.countBadge}>{priorityCounts.high}</span>}
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterPriority === 'MEDIUM' ? styles.filterActive : ''}`}
-                onClick={() => setFilterPriority('MEDIUM')}
-              >
-                Medium {priorityCounts.medium > 0 && <span className={styles.countBadge}>{priorityCounts.medium}</span>}
-              </button>
-              <button 
-                className={`${styles.filterBtn} ${filterPriority === 'LOW' ? styles.filterActive : ''}`}
-                onClick={() => setFilterPriority('LOW')}
-              >
-                Low {priorityCounts.low > 0 && <span className={styles.countBadge}>{priorityCounts.low}</span>}
-              </button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Tasks Grid */}
         <div className={styles.tasksGrid}>
